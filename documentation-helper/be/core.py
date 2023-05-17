@@ -1,9 +1,9 @@
 import os
-from typing import TypedDict
+from typing import TypedDict, List, Any
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
+from langchain.chains import ConversationalRetrievalChain
 from langchain.vectorstores import Pinecone
 import pinecone
 
@@ -31,22 +31,21 @@ class chatResponseType(TypedDict):
     result: str
     source_documents: str
 
-def run_llm(query: str) -> chatResponseType:
+def run_llm(query: str, chat_history: List[Any]=[]) -> chatResponseType:
     embeddings = OpenAIEmbeddings()
     semanticsearch = Pinecone.from_existing_index(PINECONE_INDEX_NAME, embeddings)
     chat = ChatOpenAI(verbose=True, temperature=0)
     # retriever is a wrapper around the vectorstore which does the similarity search
-    qachain = RetrievalQA.from_chain_type(
+    qachain = ConversationalRetrievalChain.from_llm(
         llm=chat,
-        chain_type="stuff",
         retriever=semanticsearch.as_retriever(),
         return_source_documents=True,
     )
     # run the chain with the passing question
-    answer = qachain(query)
+    answer = qachain({"question": query, "chat_history": chat_history})
 
     return answer
 
 
-if __name__ == "__main__":
-    print(run_llm(query="What is langchain?"))
+#if __name__ == "__main__":
+ #   print(run_llm(query="What is langchain?"))

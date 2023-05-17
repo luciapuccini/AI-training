@@ -20,4 +20,9 @@ How this is solved using `RetrievalQA` chain
 5. Now we send this full prompt with relevant semantic context to the open ai llm and request to answer the question based on the context that we provide
 
 > :bulb: this is a common pattern or strategy usually referenced as Embedding [See others](https://www.promptengineering.org/master-prompt-engineering-llm-embedding-and-fine-tuning/)
-> 
+
+## Chat history - Follow up questions with ConversationalRetrievalChain
+1. in the Front end we keep a state where we push the questions-answers entries as "chat_history"
+2. we replace the `RetrievalQA` with `ConversationalRetrievalChain`
+2. this new chan accepts an array of tuples with thew questions that were asked and the answers
+3. now this augments the prompt with the chat history as context (langchain in doing some optimizations also to reduce the tokens size)
