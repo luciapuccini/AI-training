@@ -1,10 +1,13 @@
 import os
 from langchain.document_loaders import ReadTheDocsLoader
-#This text splitter is the recommended one for generic text.
+
+# This text splitter is the recommended one for generic text.
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
 import pinecone
+
+from constants import PINECONE_INDEX_NAME
 
 pinecone.init(
     api_key=os.environ["PINECONE_API_KEY"],
@@ -13,7 +16,10 @@ pinecone.init(
 
 
 def ingest_docs() -> None:
-    loader = ReadTheDocsLoader(path="langchain-docs/langchain-docs/python.langchain.com/en/latest", encoding='utf-8')
+    loader = ReadTheDocsLoader(
+        path="langchain-docs/langchain-docs/python.langchain.com/en/latest",
+        encoding="utf-8",
+    )
     raw_documents = loader.load()
     print(f"loaded {len(raw_documents)} documents")
 
@@ -32,7 +38,7 @@ def ingest_docs() -> None:
 
     embeddingLLM = OpenAIEmbeddings()
     # persist 12100 chunks parsed to vectors (12100 vectors in pinecone)
-    Pinecone.from_documents(chunks, embeddingLLM, index_name="langchain-doc-index")
+    Pinecone.from_documents(chunks, embeddingLLM, index_name=PINECONE_INDEX_NAME)
 
 
 if __name__ == "__main__":

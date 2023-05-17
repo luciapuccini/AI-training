@@ -5,4 +5,7 @@
     <orderEntry type="jdk" jdkName="Pipenv (documentation-helper)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="C:\Users\pucci\Desktop\Dev\ai-training\documentation-helper\Pipfile" />
+  </component>
 </module>
