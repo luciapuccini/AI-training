@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import TypedDict
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
@@ -8,7 +8,6 @@ from langchain.vectorstores import Pinecone
 import pinecone
 
 from constants import PINECONE_INDEX_NAME
-
 
 pinecone.init(
     api_key=os.environ["PINECONE_API_KEY"],
@@ -27,8 +26,12 @@ pinecone.init(
 # ! problem open AI does not know what is langchain ... not trained
 #  we need to pass context. prompt = queston + context
 
+class chatResponseType(TypedDict):
+    query: str
+    result: str
+    source_documents: str
 
-def run_llm(query: str) -> Any:
+def run_llm(query: str) -> chatResponseType:
     embeddings = OpenAIEmbeddings()
     semanticsearch = Pinecone.from_existing_index(PINECONE_INDEX_NAME, embeddings)
     chat = ChatOpenAI(verbose=True, temperature=0)
@@ -44,5 +47,6 @@ def run_llm(query: str) -> Any:
 
     return answer
 
+
 if __name__ == "__main__":
-    print(run_llm(query='What is langchain?'))
+    print(run_llm(query="What is langchain?"))
