@@ -1,5 +1,6 @@
 import os
 from langchain.document_loaders import ReadTheDocsLoader
+#This text splitter is the recommended one for generic text.
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
@@ -12,26 +13,26 @@ pinecone.init(
 
 
 def ingest_docs() -> None:
-    loader = ReadTheDocsLoader(path="langchain-docs/langchain.readthedocs.io/en/latest")
+    loader = ReadTheDocsLoader(path="langchain-docs/langchain-docs/python.langchain.com/en/latest", encoding='utf-8')
     raw_documents = loader.load()
-    print(f"loaded {len(raw_documents) }documents")
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, chunk_overlap=100, separators=["\n\n", "\n", " ", ""]
-    )
-    documents = text_splitter.split_documents(documents=raw_documents)
-    print(f"Splitted into {len(documents)} chunks")
+    print(f"loaded {len(raw_documents)} documents")
 
-    for doc in documents:
-        old_path = doc.metadata["source"]
+    # prompt = query/question + context  < openai llm TOKEN limit ~4000
+    # ie reserving 2000 tokens for context, which translates to chunk size
+    # we DO NOT want to make the chuck size too small or it will lose semantic meaning
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    # ex chunk size of 400 --> 15443 chunks. size 500 --> 12100 chunks
+    chunks = text_splitter.split_documents(documents=raw_documents)
+    print(f"Splitted into {len(chunks)} chunks")
+
+    for text in chunks:
+        old_path = text.metadata["source"]
         new_url = old_path.replace("langchain-docs", "https:/")
-        doc.metadata.update({"source": new_url})
+        text.metadata.update({"source": new_url})
 
-    print(f"Going to insert {len(documents)} to Pinecone")
-    embeddings = OpenAIEmbeddings()
-    Pinecone.from_documents(
-        documents[3969:], embeddings, index_name="langchain-doc-index"
-    )
-    print("****** Added to Pinecone vectorstore vectors")
+    embeddingLLM = OpenAIEmbeddings()
+    # persist 12100 chunks parsed to vectors (12100 vectors in pinecone)
+    Pinecone.from_documents(chunks, embeddingLLM, index_name="langchain-doc-index")
 
 
 if __name__ == "__main__":
